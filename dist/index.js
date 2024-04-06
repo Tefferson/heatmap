@@ -36,12 +36,32 @@ const _options = {
     origin: { x: 50, y: 150 },
 };
 const initHeatmap = (_a, options) => {
-    var { ctx, matrix } = _a, params = __rest(_a, ["ctx", "matrix"]);
+    var { ctx } = _a, params = __rest(_a, ["ctx"]);
+    const matrix = JSON.parse(JSON.stringify(params.matrix));
     const mergedOptions = Object.assign(Object.assign(Object.assign({}, _options), options), { origin: Object.assign(Object.assign({}, _options.origin), options === null || options === void 0 ? void 0 : options.origin) });
     const origin = mergedOptions.origin;
     const heights = [...params.heights];
     heights.push(heights[heights.length - 1]);
     heights.unshift(heights[0]);
+    const maxColumns = Math.max.apply(null, [...heights, matrix.length]);
+    const matrixLength = matrix.length;
+    // preencher "espaços vazios"
+    for (let i = 0; i < maxColumns - matrixLength; i++) {
+        matrix.unshift([...matrix[0]]);
+    }
+    const maxRowLength = Math.max.apply(null, [
+        ...matrix.map((row) => row.length),
+        params.heights.length,
+    ]);
+    // preencher colunas vazias à direita
+    for (const row of matrix) {
+        row.push(...new Array(maxRowLength - row.length).fill(row[row.length - 1]));
+    }
+    // replicar a última "height" para desenhar todo o gráfico
+    const heightsToBeAdded = maxRowLength - params.heights.length;
+    if (heightsToBeAdded > 0) {
+        heights.push(...new Array(heightsToBeAdded).fill(params.heights[params.heights.length - 1]));
+    }
     const _render = ({ xResolution, yResolution, size, disable, theme, reverseY, }) => {
         if (!ctx)
             return console.error("ctx is not valid");
