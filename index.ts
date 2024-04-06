@@ -70,9 +70,11 @@ type Params = {
 };
 
 const initHeatmap = (
-  { ctx, matrix, ...params }: Params,
+  { ctx, ...params }: Params,
   options?: Partial<Options>
 ) => {
+  const matrix: number[][] = JSON.parse(JSON.stringify(params.matrix));
+
   const mergedOptions = {
     ..._options,
     ...options,
@@ -84,6 +86,35 @@ const initHeatmap = (
   const heights = [...params.heights];
   heights.push(heights[heights.length - 1]);
   heights.unshift(heights[0]);
+
+  const maxColumns = Math.max.apply(null, [...heights, matrix.length]);
+
+  const matrixLength = matrix.length;
+
+  // preencher "espaços vazios"
+  for (let i = 0; i < maxColumns - matrixLength; i++) {
+    matrix.unshift([...matrix[0]]);
+  }
+
+  const maxRowLength = Math.max.apply(null, [
+    ...matrix.map((row) => row.length),
+    params.heights.length,
+  ]);
+
+  // preencher colunas vazias à direita
+  for (const row of matrix) {
+    row.push(...new Array(maxRowLength - row.length).fill(row[row.length - 1]));
+  }
+
+  // replicar a última "height" para desenhar todo o gráfico
+  const heightsToBeAdded = maxRowLength - params.heights.length;
+  if (heightsToBeAdded > 0) {
+    heights.push(
+      ...new Array(heightsToBeAdded).fill(
+        params.heights[params.heights.length - 1]
+      )
+    );
+  }
 
   const _render = ({
     xResolution,
