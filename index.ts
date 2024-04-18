@@ -348,15 +348,31 @@ const initHeatmap = (
         const nextPoint = heights[i + 1];
         const y1 = getY(heights[i] * size * yResolution);
 
+        const maxY = yResolution * size * numRows + origin.y;
+
         if (isFirst)
-          ctx.lineTo(getX(size * xResolution) - 0.5 * size * xResolution, y1);
+          ctx.lineTo(
+            getX(size * xResolution) - 0.5 * size * xResolution,
+            Math.min(y1 + 0.5 * size * yResolution, maxY)
+          );
 
         let x2 = getX((i + 1) * size * xResolution);
         if (isLast) x2 -= 0.5 * size * xResolution;
 
         const y2 = getY(nextPoint * size * yResolution);
 
-        ctx.bezierCurveTo((x1 + x2) / 2, y1, (x1 + x2) / 2, y2, x2, y2);
+        if (isLast) {
+          ctx.bezierCurveTo(
+            (x1 + x2) / 2,
+            y1,
+            (x1 + x2) / 2,
+            y2,
+            x2,
+            Math.min(y2 + 0.5 * size * yResolution, maxY)
+          );
+        } else {
+          ctx.bezierCurveTo((x1 + x2) / 2, y1, (x1 + x2) / 2, y2, x2, y2);
+        }
 
         if (isLast) {
           ctx.lineTo(x2, getY(0));
